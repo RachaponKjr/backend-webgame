@@ -56,6 +56,7 @@ jobs:
             docker run -d \
               --name nestjs-api \
               -p 3000:3000 \
+              -v /home/user/data:/app/prisma/dev.db \
               --restart always \
               nestjs-backend:latest
 
