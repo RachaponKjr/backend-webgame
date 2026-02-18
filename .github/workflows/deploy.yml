@@ -41,7 +41,10 @@ jobs:
             cd /home/${{ secrets.SERVER_USER }}/deploy
 
             # สร้างไฟล์ .env จาก GitHub Secret
-            echo "${{ secrets.ENV_FILE }}" > .env
+            echo "${{ secrets.DATABASE_URL }}" > .env
+            echo "${{ secrets.API_PREFIX }}" > .env
+            echo "${{ secrets.GOOGLE_CLIENT_ID }}" > .env
+            echo "${{ secrets.GOOGLE_CLIENT_SECRET }}" > .env
 
             # 2. Load Image เข้า Docker
             docker load < nestjs-backend.tar
