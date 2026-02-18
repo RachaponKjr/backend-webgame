@@ -1,0 +1,112 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum GameCategory {
+  MOBILE
+  PC
+  CONSOLE
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCEL
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Game {
+  id             String        @id @default(cuid())
+  name           String        @unique
+  category       GameCategory? // ประเภทเกม เช่น Mobile, PC
+  videoUrl       String? // ไว้ใส่รูปโลโก้เกม
+  imageBannerUrl String? // ไว้ใส่รูปโลโก้เกม
+  imageUrl       String? // ไว้ใส่รูปโลโก้เกม
+  config         Json? // ไว้ใส่ config
+  isActive       Boolean       @default(true)
+  packages       Package[] // เชื่อมไปยังตาราง Package (1 เกม มีหลายแพ็กเกจ)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  orders         Order[]
+}
+
+// 2. ตารางแพ็กเกจ (เช่น 100 คริสตัล, 500 คูปอง)
+model Package {
+  id          String  @id @default(cuid())
+  name        String // ชื่อแพ็กเกจ เช่น "500 คูปอง + โบนัส"
+  amount      Int // จำนวนที่ได้รับในเกม
+  price       Float // ราคาขายจริง (บาท)
+  discount    Float   @default(0)
+  cost        Float   @default(0)
+  bonus       Float?
+  icon_base64 String? // ไว้ใส่รูปไอคอนแพ็กเกจ
+  gameId      String
+  recommend   Boolean @default(false)
+  game        Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  orders      Order[] // เชื่อมไปประวัติการสั่งซื้อ
+  isActive    Boolean @default(true)
+}
+
+// 3. ตารางรายการสั่งซื้อ (เอาไว้เก็บข้อมูลลูกค้าที่มาเติม)
+model Order {
+  id          String      @id @default(cuid())
+  gameId      String
+  game        Game        @relation(fields: [gameId], references: [id])
+  gameAccount String
+  status      OrderStatus @default(PENDING)
+  packageId   String
+  package     Package     @relation(fields: [packageId], references: [id])
+  totalPrice  Float
+  meta        Json?
+  message     String?
+  createdAt   DateTime    @default(now())
+  user        User?       @relation(fields: [userId], references: [id])
+  userId      String?
+}
+
+model Post {
+  id              String     @id @default(cuid())
+  title           String
+  tag             String?
+  metaTitle       String?
+  metaDescription String?
+  status          PostStatus @default(DRAFT)
+  viewCount       Int        @default(0)
+  content         String
+  imageUrl        String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Banner {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  isActive    Boolean  @default(true)
+  linkUrl     String?
+  title       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
