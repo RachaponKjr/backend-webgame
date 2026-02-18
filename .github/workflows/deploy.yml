@@ -41,10 +41,7 @@ jobs:
             cd /home/${{ secrets.SERVER_USER }}/deploy
 
             # สร้างไฟล์ .env จาก GitHub Secret
-            echo "${{ secrets.DATABASE_URL }}" > .env
-            echo "${{ secrets.API_PREFIX }}" > .env
-            echo "${{ secrets.GOOGLE_CLIENT_ID }}" > .env
-            echo "${{ secrets.GOOGLE_CLIENT_SECRET }}" > .env
+            echo "${{ secrets.ENV_FILE }}" > /root/.env
 
             # 2. Load Image เข้า Docker
             docker load < nestjs-backend.tar
@@ -55,6 +52,7 @@ jobs:
 
             docker run -d \
               --name nestjs-api \
+              --env-file /root/.env \
               -p 3000:3000 \
               -v /home/user/data:/app/prisma/dev.db \
               --restart always \
