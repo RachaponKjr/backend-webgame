@@ -50,13 +50,22 @@ jobs:
             docker stop nestjs-api || true
             docker rm nestjs-api || true
 
+            mkdir -p /home/user/data
+            mkdir -p /home/user/uploads
+            chmod -R 777 /home/user/data /home/user/uploads
+
+            # รันคอนเทนเนอร์ โดยแก้จุด Volume ไม่ให้ไปทับโฟลเดอร์ prisma
             docker run -d \
               --name nestjs-api \
               --env-file /root/.env \
               -p 3000:3000 \
-              -v /home/user/data:/app/prisma/dev.db \
+              -v /home/user/data:/app/data \
               --restart always \
               nestjs-backend:latest
 
-            # 4. ลบไฟล์ tar เพื่อประหยัดพื้นที่
+            # สั่ง Prisma Sync อัตโนมัติทันทีหลัง Start (ใช้ DATABASE_URL จาก .env ในคอนเทนเนอร์)
+            # ใส่ sleep เพื่อรอให้แอปเริ่มระบบสักครู่
+            sleep 5
+            docker exec nestjs-api npx prisma db push --accept-data-loss
+
             rm nestjs-backend.tar
